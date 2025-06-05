@@ -1,2 +1,2 @@
-from . import spectrum
-from . import specfitt
+from .spectrum import *
+from .specfitt import *

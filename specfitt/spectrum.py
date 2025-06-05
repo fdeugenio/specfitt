@@ -20,21 +20,35 @@ from astropy.utils.exceptions import AstropyWarning
 
 import spectres
 
+__all__ = ['jwst_spec',]
 
-LRD_TABLE     = '00_data/redshifts.csv'
+files_path = os.path.dirname(__file__)
+LRD_TABLE     = os.path.join(files_path, '00_data/redshifts.csv')
 JADES_Z_TABLE = '00_data/jades_z_table_v0.7.1.fits'
 HAILMARY_Z_TABLE = '00_data/galaxy_list.txt'
 
+
+
 class jwst_spec:
+    files_path = os.path.dirname(__file__)
     dispersers = {'r100': '(prism|PRISM)',
         'r1000': '(g140m|G140M|g235m|G235M|g395m|G395M)',
         'r2700': '(g140h|G140H|g235h|G235H|g395h|G395H)',
         'wfss': '(f356w|f444w|F356W|F444W)'}
-    lsf_anna = {'r100': '00_data/01_disp/point_source_lsf_clear_prism_QD4_i185_j85.csv',
-        'r1000': '00_data/01_disp/point_source_lsf_.*(g140m|g235m|g395m)_QD4_i185_j85.csv'}
-    lsf_nominal = {'r100': '00_data/01_disp/jwst_nirspec_prism_disp.fits',
-        'r1000': '00_data/01_disp/jwst_nirspec_(g140m|g235m|g395m)_disp.fits',
-        'wfss': '00_data/01_disp/jwst_nircam_wfss_disp.fits'}
+    lsf_anna = { 
+        'r100': os.path.join(files_path,
+            '00_data/01_disp/point_source_lsf_clear_prism_QD4_i185_j85.csv'),
+        'r1000':os.path.join(files_path,
+            '00_data/01_disp/point_source_lsf_.*(g140m|g235m|g395m)_QD4_i185_j85.csv'),
+    }
+    lsf_nominal = {
+        'r100':os.path.join(files_path,
+            '00_data/01_disp/jwst_nirspec_prism_disp.fits'),
+        'r1000':os.path.join(files_path,
+            '00_data/01_disp/jwst_nirspec_(g140m|g235m|g395m)_disp.fits'),
+        'wfss':os.path.join(files_path,
+            '00_data/01_disp/jwst_nircam_wfss_disp.fits')
+    }
     flux_unit = units.Unit('1e-20 erg/(s cm2 AA)')
 
     def __init__(self, name, folder, disperser='r1000', output_folder=None,
@@ -245,9 +259,10 @@ class jwst_spec:
     def __get_lsf_anna__(self):
         lsf_file_regex = self.lsf_anna[self.disperser]
 
-        print('Yes Anna')
         matching_files = []
-        for f in sorted(glob.glob('00_data/01_disp/*csv')):
+        for f in sorted(glob.glob(
+            os.path.join(self.file_path, '00_data/01_disp/*csv'))):
+
             match = re.search(lsf_file_regex, f)
             if not match:
                 continue
@@ -284,7 +299,8 @@ class jwst_spec:
         lsf_file_regex = self.lsf_nominal[self.disperser]
 
         matching_files = []
-        for f in sorted(glob.glob('00_data/01_disp/*fits')):
+        for f in sorted(glob.glob(os.path.join(
+            self.files_path, '00_data/01_disp/*fits'))):
             match = re.search(lsf_file_regex, f)
             if not match:
                 continue

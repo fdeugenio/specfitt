@@ -18,9 +18,10 @@ import corner
 
 from dust_extinction.parameter_averages import CCM89, G03_SMCBar
 
-import spectrum 
-from specfitt_utils import gauss_int2, _g03_, voigt_profile, log_erfc_prior
+from . import spectrum 
+from .specfitt_utils import gauss_int2, _g03_, voigt_profile, log_erfc_prior
 
+__all__ = ['jwst_spec_models', 'jwst_spec_fitter']
 
 class jwst_spec_models(spectrum.jwst_spec):
     Lyalpha   = .121567
