@@ -89,6 +89,7 @@ class jwst_spec_models(spectrum.jwst_spec):
     FeII5275 = .5274831
     FeII5378  = .5377961
     FeII5435  = .5434659
+    # Fe I  	444.54712   	0.00006  	444.54707   	0.00003   	 427  	2.44e+02  	  A 	0.08728574  	-  	2.87550352  	 3d64s2  	 a 5D  	 2  	 3d6(5D)4s4p(3P°)  	 z 7F°  	 2 
 
     Hd2Hb     = 0.2589
     Hg2Hb     = 0.4683
