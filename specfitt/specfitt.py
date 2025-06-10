@@ -2187,6 +2187,7 @@ class jwst_spec_models(spectrum.jwst_spec):
             return {
                 'z_n': (r'$z_\mathrm{n}$', 1., '[---]'),
                 'sig_n_100': (r'$\sigma_\mathrm{n}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'sig_feii_100': (r'$\sigma_\mathrm{Fe\,II}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
                 'fO35007': (r'$F(\mathrm{[O\,III]\lambda 5007})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fe24245': (r'$F(\mathrm{[Fe\,II]\lambda 4245})$', 100.,
@@ -2226,7 +2227,7 @@ class jwst_spec_models(spectrum.jwst_spec):
             return {
                 'lnlike': (r'$\log\,L$', 1., '[---]', float),
                 }
-        (z_n, sig_n_100, fO35007,
+        (z_n, sig_n_100, sig_feii_100, fO35007,
          fe24245, fe24278, fe24289, fe24415, fe25159, fe25160, fe25263, fe25270,
          a0, b0, a1, b1, a2, b2, a3, b3) = pars
         w_mum = np.array((
@@ -2247,7 +2248,8 @@ class jwst_spec_models(spectrum.jwst_spec):
 
         sig_lsf_100 = self.lsf_sigma_kms(w_mum) / 1.e2 # LSF in [1e2 km/s]
         sig100 = np.array(
-            (sig_n_100,)*10
+            (sig_feii_100,)*8
+            (sig_n_100,)*2
             #+ (fwhm_blr_100/self.fwhm2sig,)*2
             )
         sig100  = np.sqrt(sig100**2 + sig_lsf_100**2)
@@ -2299,15 +2301,15 @@ class jwst_spec_models(spectrum.jwst_spec):
         bkg21 = np.nanstd(self.flux[masks[2]])
         bkg31 = np.nanstd(self.flux[masks[3]])
         guess = np.array((
-            self.redshift_guess, 0.5, 0.1,
+            self.redshift_guess, 0.5, 0.5, 0.1,
             0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
             bkg00, bkg01, bkg10, bkg11, bkg20, bkg21, bkg30, bkg31))
         bounds = np.array((
-            (self.redshift_guess-self.dz, 0., 0.,
+            (self.redshift_guess-self.dz, 0., 0., 0.,
              0., 0.0, 0., 0., 0., 0., 0., 0.,
              bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
              bkg20-10*bkg21, -100., bkg30-10*bkg31, -100.,),
-            (self.redshift_guess+self.dz, 5., 5.,
+            (self.redshift_guess+self.dz, 5., 10., 5.,
              1., 1., 1., 1., 1., 1., 1., 1.,
              bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
              bkg20+10*bkg21, 100., bkg30+10*bkg31, 100.,
@@ -2325,7 +2327,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         #assert mask.sum()>24, f'{self.name} at z={self.redshift_guess} has less than 25 valid pixels for {func_name}'
 
         def lnprior(pars, *args):
-            (z_n, sig_n_100, fO35007,
+            (z_n, sig_n_100, sig_feii_100, fO35007,
              fe24245, fe24278, fe24289, fe24415, fe25159, fe25160, fe25263, fe25270,
              a0, b0, a1, b1, a2, b2, a3, b3) = pars
 
