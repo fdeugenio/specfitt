@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import differential_evolution, least_squares
 from scipy.signal import convolve
 
-from astropy import constants, table, units
+from astropy import constants, cosmology, table, units
+cosmop = cosmology.Planck18
 
 import emcee
 import corner
@@ -19,7 +20,7 @@ import corner
 from dust_extinction.parameter_averages import CCM89, G03_SMCBar
 
 from . import spectrum 
-from .specfitt_utils import gauss_int2, _g03_, voigt_profile, log_erfc_prior
+from .specfitt_utils import gauss_int2, _g03_, voigt_profile, log_erfc_prior, get_fwhm
 
 __all__ = ['jwst_spec_models', 'jwst_spec_fitter']
 
@@ -1141,6 +1142,7 @@ class jwst_spec_models(spectrum.jwst_spec):
             dwha = np.gradient(self.wave[mask_ha])
             ewha = np.sum((1. - np.exp(-tau_ha[mask_ha]))*dwha)*1e4 # To [AA]
             ewha /= (1+z_n)*np.exp((v_blr_100+v_abs_100)/self.c_100_kms) # Rest frame
+
             return ewha, fHa, fHa_b1+fHa_b2
         return f0, f1*absrha, f2*absrha, bk0
 
@@ -1370,7 +1372,16 @@ class jwst_spec_models(spectrum.jwst_spec):
                 'fHbeta_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\beta})$', 100.,
                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
                 'fHalpha_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\alpha})$', 100.,
-                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float)
+                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'fwhm_blr_100': (r'$FWHM_\mathrm{BLR}$', 100., r'$[\mathrm{km\,s^{-1}}]$', float),
+                'logSFR_Ha'    : (r'$\log\,SFR(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{M_\odot\,yr^{-1}}]$', float),
+                'log_L_Ha_b_ism'   : (r'$\log\,L_\mathrm{b}(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{10^{42}\,erg\,s^{-1}}]$', float),
+                'logMBH'      : (r'$\log\,(M_\bullet)$', 1.,
+                            r'$[\mathrm{M_\odot}]$', float),
+                'lEddMBH'     : (r'$\lambda_\mathrm{Edd}$', 1.,
+                            '[---]', float),
                 }
 
         (z_n, sig_n_100, Av, fNe33869, fO35007, fHa,
@@ -1439,7 +1450,24 @@ class jwst_spec_models(spectrum.jwst_spec):
             ewha = np.sum((1. - np.exp(-tau_ha[mask_ha]))*dwha)*1e4 # To [AA]
             ewhb /= (1+z_n)*np.exp((v_blr_100+v_abs_100)/self.c_100_kms) # Rest frame
             ewha /= (1+z_n)*np.exp((v_blr_100+v_abs_100)/self.c_100_kms) # Rest frame
-            return (ewhb, ewha, fNe33869, fHb, fO35007, fHa, fHb_b1+fHb_b2, fHa_b1+fHa_b2)
+            fwhm_blr_100 = get_fwhm(
+                fwhm_blr_1_100, fwhm_blr_2_100, frac1b, guess=0.15)
+            lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
+    
+            L_Ha_n = fHa * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            L_Ha_n = (L_Ha_n * lum_fact).to('1e42 erg/s').value
+            SFR_Ha = (L_Ha_n * units.Unit('1e42 erg/s') * self.SFR_to_L_Ha_Sh23).to('Msun/yr').value
+            logSFR_Ha        = np.log10(SFR_Ha)
+            L_Ha_b_ism    = fHa_b * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            log_L_Ha_b_ism = np.log10((L_Ha_b_ism * lum_fact).to('1e42 erg/s').value)
+            logMBH          = 6.6 + 0.47*log_L_Ha_b_ism + 2.06*np.log10(fwhm_blr_100/10.)
+            edrat = 130 * 10**log_L_Ha_b_ism * units.Unit('1e42 erg/s')
+            lEdd = 4.*np.pi*constants.G*constants.m_p*constants.c/constants.sigma_T
+            lEdd = lEdd*10**logMBH*units.Msun
+            lEddMBH = (edrat/lEdd).to(1).value
+
+            return (ewhb, ewha, fNe33869, fHb, fO35007, fHa, fHb_b1+fHb_b2, fHa_b1+fHa_b2,
+                fwhm_blr_100, logSFR_Ha, log_L_Ha_b_ism, logMBH, lEddMBH)
 
         return f0, f1, f2, f3, f4, f5*absrhb, f6*absrhb, f7*absrha, f8*absrha, bk0, bk1, bk2
 
@@ -1571,7 +1599,16 @@ class jwst_spec_models(spectrum.jwst_spec):
                 'fHbeta_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\beta})$', 100.,
                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
                 'fHalpha_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\alpha})$', 100.,
-                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float)
+                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'fwhm_blr_100': (r'$FWHM_\mathrm{BLR}$', 100., r'$[\mathrm{km\,s^{-1}}]$', float),
+                'logSFR_Ha'    : (r'$\log\,SFR(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{M_\odot\,yr^{-1}}]$', float),
+                'log_L_Ha_b_ism'   : (r'$\log\,L_\mathrm{b}(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{10^{42}\,erg\,s^{-1}}]$', float),
+                'logMBH'      : (r'$\log\,(M_\bullet)$', 1.,
+                            r'$[\mathrm{M_\odot}]$', float),
+                'lEddMBH'     : (r'$\lambda_\mathrm{Edd}$', 1.,
+                            '[---]', float),
                 }
 
         (z_n, sig_n_100, Av, fNe33869, fO35007, fHa,
@@ -1652,7 +1689,27 @@ class jwst_spec_models(spectrum.jwst_spec):
             ewha_2 = np.sum((1. - np.exp(-tau_ha_2[mask_ha]))*dwha)*1e4 # To [AA]
             ewhb_2 /= (1+z_n)*np.exp((v_blr_100+v_abs_2_100)/self.c_100_kms) # Rest frame
             ewha_2 /= (1+z_n)*np.exp((v_blr_100+v_abs_2_100)/self.c_100_kms) # Rest frame
-            return (ewhb_1, ewha_1, ewhb_2, ewha_2, fNe33869, fHb, fO35007, fHa, fHb_b1+fHb_b2, fHa_b1+fHa_b2)
+
+            fwhm_blr_100 = get_fwhm(
+                fwhm_blr_1_100, fwhm_blr_2_100, frac1b, guess=0.15)
+            lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
+    
+            L_Ha_n = fHa * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            L_Ha_n = (L_Ha_n * lum_fact).to('1e42 erg/s').value
+            SFR_Ha = (L_Ha_n * units.Unit('1e42 erg/s') * self.SFR_to_L_Ha_Sh23).to('Msun/yr').value
+            logSFR_Ha        = np.log10(SFR_Ha)
+            L_Ha_b_ism    = fHa_b * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            log_L_Ha_b_ism = np.log10((L_Ha_b_ism * lum_fact).to('1e42 erg/s').value)
+            logMBH          = 6.6 + 0.47*log_L_Ha_b_ism + 2.06*np.log10(fwhm_blr_100/10.)
+            edrat = 130 * 10**log_L_Ha_b_ism * units.Unit('1e42 erg/s')
+            lEdd = 4.*np.pi*constants.G*constants.m_p*constants.c/constants.sigma_T
+            lEdd = lEdd*10**logMBH*units.Msun
+            lEddMBH = (edrat/lEdd).to(1).value
+
+            return (
+                ewhb_1, ewha_1, ewhb_2, ewha_2, fNe33869, fHb, fO35007, fHa, fHb_b1+fHb_b2, fHa_b1+fHa_b2,
+                fwhm_blr_100, logSFR_Ha, log_L_Ha_b_ism, logMBH, lEddMBH
+                )
 
         return f0, f1, f2, f3, f4, f5*absrhb_1*absrhb_2, f6*absrhb_1*absrhb_2, f7*absrha_1*absrha_2, f8*absrha_1*absrha_2, bk0, bk1, bk2
 
@@ -1793,7 +1850,15 @@ class jwst_spec_models(spectrum.jwst_spec):
                 'fHbeta_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\beta})$', 100.,
                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
                 'fHalpha_b_obs' : (r'$F_\mathrm{b}(\mathrm{H\alpha})$', 100.,
-                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float)
+                            r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'logSFR_Ha'    : (r'$\log\,SFR(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{M_\odot\,yr^{-1}}]$', float),
+                'log_L_Ha_b_ism'   : (r'$\log\,L_\mathrm{b}(\mathrm{H\alpha})$', 1.,
+                            r'$[\mathrm{10^{42}\,erg\,s^{-1}}]$', float),
+                'logMBH'      : (r'$\log\,(M_\bullet)$', 1.,
+                            r'$[\mathrm{M_\odot}]$', float),
+                'lEddMBH'     : (r'$\lambda_\mathrm{Edd}$', 1.,
+                            '[---]', float),
                 }
 
         (z_n, sig_n_100, Av, fNe33869, fO35007, fHa,
@@ -1896,7 +1961,25 @@ class jwst_spec_models(spectrum.jwst_spec):
             ewha_2 = np.sum((1. - np.exp(-tau_ha_2[mask_ha]))*dwha)*1e4 # To [AA]
             ewhb_2 /= (1+z_n)*np.exp((v_blr_100+v_abs_2_100)/self.c_100_kms) # Rest frame
             ewha_2 /= (1+z_n)*np.exp((v_blr_100+v_abs_2_100)/self.c_100_kms) # Rest frame
-            return (ewhb_1, ewha_1, ewhb_2, ewha_2, fNe33869, fHb, fO35007, fHa, fHb_b, fHa_b)
+
+            lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
+    
+            L_Ha_n = fHa * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            L_Ha_n = (L_Ha_n * lum_fact).to('1e42 erg/s').value
+            SFR_Ha = (L_Ha_n * units.Unit('1e42 erg/s') * self.SFR_to_L_Ha_Sh23).to('Msun/yr').value
+            logSFR_Ha        = np.log10(SFR_Ha)
+            L_Ha_b_ism    = fHa_b * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
+            log_L_Ha_b_ism = np.log10((L_Ha_b_ism * lum_fact).to('1e42 erg/s').value)
+            logMBH          = 6.6 + 0.47*log_L_Ha_b_ism + 2.06*np.log10(fwhm_blr_100/10.)
+            edrat = 130 * 10**log_L_Ha_b_ism * units.Unit('1e42 erg/s')
+            lEdd = 4.*np.pi*constants.G*constants.m_p*constants.c/constants.sigma_T
+            lEdd = lEdd*10**logMBH*units.Msun
+            lEddMBH = (edrat/lEdd).to(1).value
+
+            return (
+                ewhb_1, ewha_1, ewhb_2, ewha_2, fNe33869, fHb, fO35007, fHa, fHb_b, fHa_b,
+                logSFR_Ha, log_L_Ha_b_ism, logMBH, lEddMBH
+                )
 
         return f0, f1, f2, f3, f4, f5*absrhb_1*absrhb_2, f6*absrha_1*absrha_2, f7*absrhb_1*absrhb_2, f8*absrha_1*absrha_2, bk0, bk1, bk2
 
@@ -2250,7 +2333,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         sig_lsf_100 = self.lsf_sigma_kms(w_mum) / 1.e2 # LSF in [1e2 km/s]
         sig100 = np.array(
             (sig_feii_100,)*8
-            (sig_n_100,)*2
+            + (sig_n_100,)*2
             #+ (fwhm_blr_100/self.fwhm2sig,)*2
             )
         sig100  = np.sqrt(sig100**2 + sig_lsf_100**2)
@@ -2463,7 +2546,6 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         plt.step(self.wave, np.sum(model_lsq, axis=0), 'r-', where='mid')
         plt.savefig(lsq_output_file, bbox_inches='tight', pad_inches=0.01)
         plt.close(fig)
-
 
         pos = np.array([
             np.random.normal(self.pars_lsq, self.generous_factor*self.errs_lsq)
