@@ -13,7 +13,7 @@ fwhm2sig  = np.sqrt(np.log(256.))
 
 def _g03_(wave, Av):
     """Return attenuation (linear) at `wave` for a CCM89 law with `Av` and optional `Rv`"""
-    wave = np.clip(wave, 0.1, 3.3333)
+    #wave = np.clip(wave, 0.1, 3.3333)
     return np.exp(-G03_SMCBar()(1./wave/units.um) * Av / (2.5*np.log10(np.e)))
 
 def gauss_int2(x, mu=0, sig=1, flux=1.):
