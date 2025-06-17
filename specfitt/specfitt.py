@@ -1744,8 +1744,8 @@ class jwst_spec_models(spectrum.jwst_spec):
              -5., 0., 0.0, 0.1, 0.1,
              bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
              bkg20-10*bkg21, -100.),
-            (self.redshift_guess+self.dz, 5., 5., 1., 1., 1.,
-              5., 20., 70., 1., 5., 1.,
+            (self.redshift_guess+self.dz, 5., 5., 1., 5., 5.,
+              5., 20., 70., 10., 30., 1.,
               5., 5., 1.0, 30., 30.,
               5., 5., 1.0, 30., 30.,
              bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
@@ -1778,7 +1778,7 @@ class jwst_spec_models(spectrum.jwst_spec):
             lnprior += log_erfc_prior(fHb_b/fHa_b, mean=.3, scale=0.05)
 
             # erfc prior. Difference between absorber velocities less than 100 km/s.
-            lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
+            # lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
 
             return lnprior
 
@@ -1859,6 +1859,7 @@ class jwst_spec_models(spectrum.jwst_spec):
                             r'$[\mathrm{M_\odot}]$', float),
                 'lEddMBH'     : (r'$\lambda_\mathrm{Edd}$', 1.,
                             '[---]', float),
+                'W'     : (r'$W$', 1., r'$\mathrm{[km\,s^{-1}]}$', float),
                 }
 
         (z_n, sig_n_100, Av, fNe33869, fO35007, fHa,
@@ -1882,7 +1883,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         fHb = fHa/self.Ha2Hb
         fO34959 = fO35007 / 2.98
         (fNe33869, fHb, fO34959, fO35007, fHa,
-         fHb_b, fHb_b, _, _, _, _) = np.array((
+         fHb_b, fHa_b, _, _, _, _) = np.array((
              fNe33869, fHb, fO34959, fO35007, fHa,
              fHb_b, fHa_b, 0., 0, .0, 0.)) * atten
 
@@ -1921,7 +1922,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         bk1 = np.where(self.fit_mask[1], bk1, 0)
         bk2 = np.where(self.fit_mask[2], bk2, 0)
 
-        W_kms = (428. + tau_thom + 370.) * np.sqrt(T_thom)
+        W_kms = (428. * tau_thom + 370.) * np.sqrt(T_thom)
         W_mum = W_kms/self.c_kms * w_mum[5]
 
         # Scatter Hb.
@@ -1937,6 +1938,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         f7 *= f_scatt
        
         # Scatter Ha.
+        W_mum = W_kms/self.c_kms * w_mum[6]
         dw = np.argmin(np.abs(self.wave-w_mum[6]))
         dw = np.gradient(self.wave)[dw]
         _w_ = np.arange(0., W_mum*25+dw, dw)
@@ -1978,7 +1980,7 @@ class jwst_spec_models(spectrum.jwst_spec):
 
             return (
                 ewhb_1, ewha_1, ewhb_2, ewha_2, fNe33869, fHb, fO35007, fHa, fHb_b, fHa_b,
-                logSFR_Ha, log_L_Ha_b_ism, logMBH, lEddMBH
+                logSFR_Ha, log_L_Ha_b_ism, logMBH, lEddMBH, W_kms
                 )
 
         return f0, f1, f2, f3, f4, f5*absrhb_1*absrhb_2, f6*absrha_1*absrha_2, f7*absrhb_1*absrhb_2, f8*absrha_1*absrha_2, bk0, bk1, bk2
@@ -2040,15 +2042,15 @@ class jwst_spec_models(spectrum.jwst_spec):
              a0, b0, a1, b1, a2, b2) = pars
 
             lnprior = 0.
-            lnprior += -np.log(.5) - 0.5*np.log(2.*np.pi) - 0.5*((v_abs_1_100-(0.))/.5)**2
-            lnprior += -np.log(.5) - 0.5*np.log(2.*np.pi) - 0.5*((v_abs_2_100-(0.))/.5)**2
+            lnprior += -np.log(.5) - 0.5*np.log(2.*np.pi) - 0.5*((v_abs_1_100-(0.))/1.)**2
+            lnprior += -np.log(.5) - 0.5*np.log(2.*np.pi) - 0.5*((v_abs_2_100-(0.))/1.)**2
             lnprior += -np.log(.1) - 0.5*np.log(2.*np.pi) - 0.5*((v_blr_100-(0.))/.1)**2
 
             # erfc prior; broad Hb/Ha<1/3 iwth a sigma of 0.05
             lnprior += log_erfc_prior(fHb_b/fHa_b, mean=.3, scale=0.05)
 
             # erfc prior. Difference between absorber velocities less than 100 km/s.
-            lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
+            # lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
 
             return lnprior
 
