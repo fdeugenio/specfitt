@@ -55,6 +55,7 @@ class jwst_spec_models(spectrum.jwst_spec):
     NII6548   = .654986
     Halpha    = .65645
     NII6583   = .6585273
+    HeI6678   = .6679995
     SII6716   = .6718295
     SII6731   = .6732674
     HeI7065   = .7067138
@@ -2588,6 +2589,7 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
             zip(*np.percentile(self.extended_samples, [16, 50, 84], axis=0)))))
         self.pars_mcmc = self.pars[:, 0] 
         self.model_spec = self.model(self.samples[np.nanargmax(lnlike), :])
+        self.best_redshift = self.pars_mcmc[0]
 
         self.samples_denorm = np.copy(self.samples)
         self.pars_denorm    = np.copy(self.pars)
@@ -2608,6 +2610,15 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         print(f'Written {output_file} to disk.')
 
         return None # __init__ bic, lnlike, model_spec, mask, samples
+
+
+
+    def _get_args_(self):
+
+        fit_init = getattr(self, f'{self.model.__name__}_fit_init')
+        fit_mask, _, bounds, lnprior = fit_init()
+        return (fit_mask, self.model, lnprior, bounds)
+
 
 
     def plot_corner(self, trim=None, corner_kwargs={}):
@@ -2685,7 +2696,7 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         return fig
 
 
-    def plot_best_fit(self, ax=None, rax=None, fontsize=24):
+    def plot_best_fit(self, ax=None, rax=None, show_rest=True, fontsize=24):
 
         ax = plt.gca() if ax is None else ax
         plot_mask = np.arange(self.wave.size)
@@ -2716,6 +2727,16 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         for lw in line_waves:
             for _ax_ in (ax, rax):
                 if _ax_: _ax_.axvline(lw, ls='--', alpha=0.5, color='k')
+
+        if show_rest:
+            self.best_redshift = getattr(self, 'best_redshift', self.pars_mcmc[0])
+            rest_to_obs = lambda x: x / 1.e4 * (1. + self.best_redshift)
+            obs_to_rest = lambda x: x * 1.e4 / (1. + self.best_redshift)
+            tax = ax.secondary_xaxis('top', functions=(obs_to_rest, rest_to_obs))
+            tax.set_xlabel('$\lambda \; \mathrm{(rest) \; [\mathring{A}]}$',
+                fontsize=fontsize, labelpad=0)
+            ax.xaxis.set_tick_params(which='both', top=False)
+
         if rax is None:
             return
         chi = ( (self.flux - model_sum) / self.errs)
