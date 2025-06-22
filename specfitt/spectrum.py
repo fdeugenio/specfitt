@@ -65,7 +65,9 @@ class jwst_spec:
         if callable(noise_rescale):
             noise_rescale = noise_rescale(self.wave)
         self.errs *= noise_rescale
-        if name==57146: breakpoint()
+        if name==57146:
+            self.flux[3] = np.nan
+            warnings.warn(f'Replacing data artefact at pixel 3 for galaxy {name}')
    
         self.lsf_type = kwargs.get('lsf_type', 'nominal')
         self.lsf_sigma_kms = self.__get_lsf__()
