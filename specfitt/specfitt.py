@@ -75,7 +75,8 @@ class jwst_spec_models(spectrum.jwst_spec):
     FeII4289  = .4288599
     FeII4233  = .4232755
     FeII4307  = .4307109
-    FeII4415  = .4415022
+    FeII4359  = .4360557
+    FeII4414  = .4415022
     FeII4418  = .4417508
     FeII4472  = .4471552
     FeII4476  = .4476156
@@ -2281,7 +2282,7 @@ class jwst_spec_models(spectrum.jwst_spec):
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fe24278': (r'$F(\mathrm{[Fe\,II]\lambda 4278})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
-                'fe24415': (r'$F(\mathrm{[Fe\,II]\lambda 4415})$', 100.,
+                'fe24414': (r'$F(\mathrm{[Fe\,II]\lambda 4414})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fe24289': (r'$F(\mathrm{[Fe\,II]\lambda 4289})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
@@ -2315,11 +2316,11 @@ class jwst_spec_models(spectrum.jwst_spec):
                 'lnlike': (r'$\log\,L$', 1., '[---]', float),
                 }
         (z_n, sig_n_100, sig_feii_100, fO35007,
-         fe24245, fe24278, fe24289, fe24415, fe25159, fe25160, fe25263, fe25270,
+         fe24245, fe24278, fe24289, fe24414, fe25159, fe25160, fe25263, fe25270,
          a0, b0, a1, b1, a2, b2, a3, b3) = pars
         w_mum = np.array((
             self.FeII4245, self.FeII4278,
-            self.FeII4289, self.FeII4415,
+            self.FeII4289, self.FeII4414,
             self.FeII5159, self.FeII5160,
             self.FeII5263, self.FeII5270,
             self.OIII4959, self.OIII5007,
@@ -2345,7 +2346,7 @@ class jwst_spec_models(spectrum.jwst_spec):
         f0  = gauss_int2(self.wave, mu=w_mum[0], sig=sig_mum[0], flux=fe24245)
         f1  = gauss_int2(self.wave, mu=w_mum[1], sig=sig_mum[1], flux=fe24278)
         f2  = gauss_int2(self.wave, mu=w_mum[2], sig=sig_mum[2], flux=fe24289)
-        f3  = gauss_int2(self.wave, mu=w_mum[3], sig=sig_mum[3], flux=fe24415)
+        f3  = gauss_int2(self.wave, mu=w_mum[3], sig=sig_mum[3], flux=fe24414)
         f4  = gauss_int2(self.wave, mu=w_mum[4], sig=sig_mum[4], flux=fe25159)
         f5  = gauss_int2(self.wave, mu=w_mum[5], sig=sig_mum[5], flux=fe25160)
         f6  = gauss_int2(self.wave, mu=w_mum[6], sig=sig_mum[6], flux=fe25263)
@@ -2415,7 +2416,7 @@ class jwst_spec_models(spectrum.jwst_spec):
 
         def lnprior(pars, *args):
             (z_n, sig_n_100, sig_feii_100, fO35007,
-             fe24245, fe24278, fe24289, fe24415, fe25159, fe25160, fe25263, fe25270,
+             fe24245, fe24278, fe24289, fe24414, fe25159, fe25160, fe25263, fe25270,
              a0, b0, a1, b1, a2, b2, a3, b3) = pars
 
             lnprior = 0.
