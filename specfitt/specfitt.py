@@ -68,29 +68,31 @@ class jwst_spec_models(spectrum.jwst_spec):
     SIII9532  = .95332
     HeI10829  = 1.0832057
     Pagamma   = 1.094097787
-    FeII4180  = .4180143
+    FeII4179  = .4180143
     FeII4245  = .4245169
-    FeII4268  = .4267548
-    FeII4278  = .4278041
-    FeII4289  = .4288599
+    FeII4266  = .4267548
+    FeII4277  = .4278041
+    FeII4287  = .4288599
     FeII4233  = .4232755
-    FeII4307  = .4307109
+    FeII4306  = .4307109
+    FeII4320  = .4320837  
     FeII4359  = .4360557
     FeII4414  = .4415022
     FeII4418  = .4417508
     FeII4472  = .4471552
     FeII4476  = .4476156
     FeII4689  = .4688868
-    FeII4816  = .4815890
-    FeII4907  = .4906721
-    FeII4891  = .4890988
+    FeII4815  = .4815890
+    FeII4905  = .4906721
+    FeII4890  = .4890988
     FeII4895  = .4895147
+    FeII5044  = .5044934
     FeII5159  = .5159451
     FeII5160  = .5160229
-    FeII5263  = .5263097
-    FeII5264  = .5263932
-    FeII5270  = .5270352
-    FeII5275 = .5274831
+    FeII5261  = .5263097
+    FeII5263  = .5263932
+    FeII5269  = .5270352
+    FeII5275  = .5274831
     FeII5378  = .5377961
     FeII5435  = .5434659
     # Fe I  	444.54712   	0.00006  	444.54707   	0.00003   	 427  	2.44e+02  	  A 	0.08728574  	-  	2.87550352  	 3d64s2  	 a 5D  	 2  	 3d6(5D)4s4p(3P°)  	 z 7F°  	 2 
@@ -2734,7 +2736,7 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
             rest_to_obs = lambda x: x / 1.e4 * (1. + self.best_redshift)
             obs_to_rest = lambda x: x * 1.e4 / (1. + self.best_redshift)
             tax = ax.secondary_xaxis('top', functions=(obs_to_rest, rest_to_obs))
-            tax.set_xlabel('$\lambda \; \mathrm{(rest) \; [\mathring{A}]}$',
+            tax.set_xlabel(r'$\lambda \; \mathrm{(rest) \; [\mathring{A}]}$',
                 fontsize=fontsize, labelpad=0)
             ax.xaxis.set_tick_params(which='both', top=False)
 
