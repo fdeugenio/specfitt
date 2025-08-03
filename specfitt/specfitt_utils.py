@@ -57,10 +57,22 @@ def get_fwhm(fwhm100b1, fwhm100b2, frac1b, guess=10):
     fwhm = 2.*fsolve(target_func, args=(fwhm100b1, fwhm100b2, frac1b), x0=guess)[0]
     return np.abs(fwhm)
 
+def mask_line(wave, wave_c, delta, z, avoid=True):
+    if wave_c.unit==units.AA:
+        wave_c = (wave_c*(1+z)).to('um')
+    wave_c = wave_c.value
+
+    if delta.unit==units.Unit('km/s'):
+        delta = (delta/constants.c*wave_c)
+
+    if avoid:
+        return np.abs(wave - wave_c)>delta
+    else:
+        return np.abs(wave - wave_c)>delta
+
 
 
 @functools.cache
 def _g03_Av1_(wave):
     """Return attenuation (linear) at `wave` for a CCM89 law with `Av` and optional `Rv    `"""
     return np.exp(-G03_SMCBar()(1./wave/units.um) / (2.5*np.log10(np.e)))
-
