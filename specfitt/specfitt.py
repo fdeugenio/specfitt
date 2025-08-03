@@ -47,6 +47,7 @@ class jwst_spec_models(spectrum.jwst_spec):
     Hbeta     = .48626
     OIII4959  = .49603
     OIII5007  = .50082
+    NII5755   = .575619
     HeI5875   = .5877249
     NaI5890   = .5891583
     NaI5896   = .5897558
