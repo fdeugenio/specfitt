@@ -73,7 +73,9 @@ class jwst_spec_models(spectrum.jwst_spec):
     FeII4245  = .4245169
     FeII4266  = .4267548
     FeII4277  = .4278041
+    FeII4278  = .4278041 # Legacy only
     FeII4287  = .4288599
+    FeII4289  = .4288599 # Legacy only
     FeII4233  = .4232755
     FeII4306  = .4307109
     FeII4320  = .4320837  
@@ -93,6 +95,7 @@ class jwst_spec_models(spectrum.jwst_spec):
     FeII5261  = .5263097
     FeII5263  = .5263932
     FeII5269  = .5270352
+    FeII5270  = .5270352 # Legacy only
     FeII5275  = .5274831
     FeII5378  = .5377961
     FeII5435  = .5434659
