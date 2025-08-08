@@ -1125,10 +1125,10 @@ class jwst_spec_models(specfitt.jwst_spec_models):
          fe24245, fe24278, fe24289, fe24415, fe25159, fe25160, fe25263, fe25270,
          a0, b0, a1, b1, a2, b2, a3, b3) = pars
         w_mum = np.array((
-            self.FeII4245, self.FeII4278,
-            self.FeII4289, self.FeII4414,
+            self.FeII4245, self.FeII4277,
+            self.FeII4287, self.FeII4414,
             self.FeII5159, self.FeII5160,
-            self.FeII5263, self.FeII5270,
+            self.FeII5263, self.FeII5269,
             self.OIII4959, self.OIII5007,
             ))
         w_mum = (w_mum * (1.+z_n)
