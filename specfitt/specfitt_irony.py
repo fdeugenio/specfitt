@@ -1091,10 +1091,6 @@ class jwst_spec_models(specfitt.jwst_spec_models):
                        r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
                 'bk101': (r'$bk_1$', 1., 
                        r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
-                'bk110': (r'$bk_0$', 1., 
-                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
-                'bk111': (r'$bk_1$', 1., 
-                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
                  }
         if print_blob_dtypes:
             return {
@@ -1111,6 +1107,12 @@ class jwst_spec_models(specfitt.jwst_spec_models):
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
                 'fS2_nebular': (r'$F(\mathrm{[S\,II]\lambda\lambda 6716,6731})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'fFe24414': (r'$F(\mathrm{[Fe\,II]\lambda 4414})$', 100.,
+                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'fO34959': (r'$F(\mathrm{[O\,III]\lambda 4959})$', 100.,
+                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'fO16363': (r'$F(\mathrm{[O\,I]\lambda 6363})$', 100.,
+                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
                 'EW_NaI':      (r'$EW(\mathrm{Na\,I})$', 1., r'$[\AA]$', float),
                 }
         (z_n, sig_n_100, sig_feii_100,
@@ -1121,25 +1123,25 @@ class jwst_spec_models(specfitt.jwst_spec_models):
          fO34363, fO35007, fN25755, fHe15875, fO16300, fS26716, R_S2_nebular,
          v_nad_100, sig_nad_100, C_f_nad, tau0_nad,
          a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6,
-         a7, b7, a8, b8, a9, b9, a10, b10, a11, b11,
+         a7, b7, a8, b8, a9, b9, a10, b10,
         ) = pars
         w_mum = np.array((
-            self.OII3726,  self.OII3729,
-            self.NeIII3869,
-            self.SII4069,  self.SII4076,
-            self.FeII4179, self.FeII4245,
+            self.OII3726,  self.OII3729,  # 0--1
+            self.NeIII3869,               #    2
+            self.SII4069,  self.SII4076,  # 3--4
+            self.FeII4179, self.FeII4245, # 5--6
             self.FeII4277, self.FeII4287,
             self.FeII4306, self.FeII4320, 
             self.FeII4359, self.FeII4414,
-            self.FeII4815,
-            self.FeII4890, self.FeII4905,
-            self.FeII5044, self.FeII5159,
-            self.FeII5263,
-            self.OIII4363, self.OIII4959, self.OIII5007,
-            self.NII5755,  self.HeI5875,
-            self.OI6300,   self.OI6363,
-            self.SII6716,  self.SII6731,
-            self.NaI5890,  self.NaI5896,
+            self.FeII4815,                # 13
+            self.FeII4890, self.FeII4905, #
+            self.FeII5044, self.FeII5159, #
+            self.FeII5263,                # 18
+            self.OIII4363, self.OIII4959, self.OIII5007, # 19--21
+            self.NII5755,  self.HeI5875,  # 22--23
+            self.OI6300,   self.OI6363,   # 24--25
+            self.SII6716,  self.SII6731,  # 26--27
+            self.NaI5890,  self.NaI5896,  # 28--29
             ))
 
         w_mum = (w_mum * (1.+z_n)
@@ -1167,16 +1169,16 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             + (sig_feii_100,)*16
             + (sig_n_100,)*3
             + (sig_feii_100,)*1
-            + (sig_feii_100,)*5
+            + (sig_n_100,)*5
             + (sig_nad_100,)*2
             #+ (fwhm_blr_100/self.fwhm2sig,)*2
             )
         sig100  = np.sqrt(sig100**2 + sig_lsf_100**2)
         sig_mum = sig100 / constants.c.to('1e2 km/s').value * w_mum
 
-        f0   = gauss_int2(self.wave, mu=w_mum[ 0], sig=sig_mum[ 0], flux=fS24069)
-        f1   = gauss_int2(self.wave, mu=w_mum[ 1], sig=sig_mum[ 1], flux=fS24076)
-        f2   = gauss_int2(self.wave, mu=w_mum[ 2], sig=sig_mum[ 2], flux=fFe24179)
+        f0   = gauss_int2(self.wave, mu=w_mum[ 0], sig=sig_mum[ 0], flux=fO23726)
+        f1   = gauss_int2(self.wave, mu=w_mum[ 1], sig=sig_mum[ 1], flux=fO23729)
+        f2   = gauss_int2(self.wave, mu=w_mum[ 2], sig=sig_mum[ 2], flux=fNe33869)
         f3   = gauss_int2(self.wave, mu=w_mum[ 3], sig=sig_mum[ 3], flux=fS24069)
         f4   = gauss_int2(self.wave, mu=w_mum[ 4], sig=sig_mum[ 4], flux=fS24076)
         f5   = gauss_int2(self.wave, mu=w_mum[ 5], sig=sig_mum[ 5], flux=fFe24179)
@@ -1204,7 +1206,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         f27  = gauss_int2(self.wave, mu=w_mum[27], sig=sig_mum[27], flux=fS26731)
 
         tau0_norm = np.sqrt(2.*np.pi) * sig_mum[28]
-        tau_nad_blue = 2. * tau0_nad* gauss_int2(
+        tau_nad_blue = 2. * tau0_nad * gauss_int2(
             self.wave, mu=w_mum[28], sig=sig_mum[28], flux=tau0_norm)
         tau0_norm = np.sqrt(2.*np.pi) * sig_mum[29]
         tau_nad_red  = 1. * tau0_nad * gauss_int2(
@@ -1219,10 +1221,9 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         bk5 = a5 + (self.wave-w_mum[15]) * b5
         bk6 = a6 + (self.wave-w_mum[15]) * b6
         bk7 = a7 + (self.wave-w_mum[17]) * b7
-        bk8 = a8 + (self.wave-w_mum[22]) * b8
-        bk9 = a9 + (self.wave-w_mum[23]) * b9
-        bk10 = a10 + (self.wave-w_mum[24]) * b10
-        bk11 = a11 + (self.wave-w_mum[26]) * b11
+        bk8 = a8 + (self.wave-w_mum[23]) * b8
+        bk9 = a9 + (self.wave-w_mum[24]) * b9
+        bk10 = a10 + (self.wave-w_mum[26]) * b10
 
         bk0 = np.where(self.fit_mask[0], bk0, 0)
         bk1 = np.where(self.fit_mask[1], bk1, 0)
@@ -1235,15 +1236,14 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         bk8 = np.where(self.fit_mask[8], bk8, 0)
         bk9 = np.where(self.fit_mask[9], bk9, 0)
         bk10 = np.where(self.fit_mask[10], bk10, 0)
-        bk11 = np.where(self.fit_mask[11], bk11, 0)
 
         if print_blobs:
             mask_nad  = (
-                self.fit_mask[9] & (np.abs(self.wave-w_mum[28])/sig_mum[28]<6)
+                self.fit_mask[8] & (np.abs(self.wave-w_mum[28])/sig_mum[28]<6)
                 )
-            _ew_cont_ = bk9*absr_nad
-            _ew_cont_ = 1. - _ew_cont_/bk9
-            dw = np.gradient(x[mask_nad])
+            _ew_cont_ = (self.spline_model_cont + bk8)*absr_nad
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk8)
+            dw = np.gradient(self.wave[mask_nad])
             _ew_cont_ = np.sum(_ew_cont_[mask_nad]*dw)*1e4 # To [AA]
             ew_nad = _ew_cont_ / ((1+z_n)*np.exp((v_nad_100)/self.c_100_kms)) # Rest frame
             return (fO23729, fS24076, fS26731,
@@ -1257,19 +1257,23 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             f17, f18, f19, f20,
             f21, f22, f23, f24, f25, f26, f27,
             bk0, bk1, bk2, bk3, bk4, bk5, bk6,
-            bk7, bk8, bk9, bk10, bk11,
+            bk7, bk8*absr_nad, bk9, bk10, self.spline_model_cont*absr_nad,
             )
 
     def model_feii_forbidden_fit_init(self):
         """Halpha and [NII]6548,6583. Narrow and BLR."""
-        #mask = mask & ~(np.abs(self.wave - 0.6717*(1.+self.redshift_guess))<0.005)
-        #mask = mask & ~(np.abs(self.wave - 0.6731*(1.+self.redshift_guess))<0.005)
+
+        self.model_feii_forbidden_get_spline_cont_fit_init()
+
+        backup_flux = np.copy(self.flux)
+        self.flux -= self.spline_model_cont
+
         lwave = np.array((
             .3728, .3870, .4075, .4180, .43416, .48626, .5008, .5215,
-            .5755, .5875, .6350, .6725))
+            .5800, .6350, .6725))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.03, 0.02, 0.02, 0.02, 0.08, 0.05, 0.05, 0.05,
-            0.03, 0.04, 0.05, 0.05)
+            0.10, 0.05, 0.05)
 
         masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
@@ -1283,7 +1287,6 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             np.abs(self.wave-pivot_waves[8])<windw_sizes[8],
             np.abs(self.wave-pivot_waves[9])<windw_sizes[9],
             np.abs(self.wave-pivot_waves[10])<windw_sizes[10],
-            np.abs(self.wave-pivot_waves[11])<windw_sizes[11],
         ]
         masks[4] = (
             masks[4]
@@ -1305,7 +1308,6 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         bkg80 = np.nanmedian(self.flux[masks[8]])
         bkg90 = np.nanmedian(self.flux[masks[9]])
         bkg100= np.nanmedian(self.flux[masks[10]])
-        bkg110= np.nanmedian(self.flux[masks[11]])
         bkg01 = np.nanstd(self.flux[masks[0]])
         bkg11 = np.nanstd(self.flux[masks[1]])
         bkg21 = np.nanstd(self.flux[masks[2]])
@@ -1317,7 +1319,9 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         bkg81 = np.nanstd(self.flux[masks[8]])
         bkg91 = np.nanstd(self.flux[masks[9]])
         bkg101= np.nanstd(self.flux[masks[10]])
-        bkg111= np.nanstd(self.flux[masks[11]])
+
+        self.flux = backup_flux
+
         guess = np.array((
             self.redshift_guess, 0.5, 0.5,
             0.01, 0.700, 0.01,
@@ -1329,7 +1333,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             bkg00, bkg01, bkg10, bkg11, bkg20, bkg21,
             bkg30, bkg31, bkg40, bkg41, bkg50, bkg51,
             bkg60, bkg61, bkg70, bkg71, bkg80, bkg81,
-            bkg90, bkg91, bkg100, bkg101, bkg110, bkg111,
+            bkg90, bkg91, bkg100, bkg101,
             ))
         bounds = np.array((
             (self.redshift_guess-self.dz, 0., 0.,
@@ -1339,13 +1343,13 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              0., 0., 0., 0., 0., 0.,
              0., 0., 0., 0., 0.,
              0., 0.6773,
-             -5., 0.01, 0.0, 0.0,
+             -1., 0.01, 0.0, 0.0,
              bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
              bkg20-10*bkg21, -100., bkg30-10*bkg31, -100.,
              bkg40-10*bkg41, -100., bkg50-10*bkg51, -100.,
              bkg60-10*bkg61, -100., bkg70-10*bkg71, -100.,
              bkg80-10*bkg81, -100., bkg90-10*bkg91, -100.,
-             bkg100-10*bkg101, -100., bkg110-10*bkg111, -100.,
+             bkg100-10*bkg101, -100.,
              ),
             (self.redshift_guess+self.dz, 5., 10.,
              5., 1.510, 5.,
@@ -1354,13 +1358,13 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              5., 5., 5., 5., 5., 5.,
              5., 5., 5., 5., 5.,
              5., 2.372,
-             5., 10., 1.0, 15.0,
+             1., 10., 1.0, 15.0,
              bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
              bkg20+10*bkg21, 100., bkg30+10*bkg31, 100.,
              bkg40+10*bkg41, 100., bkg50+10*bkg51, 100.,
              bkg60+10*bkg61, 100., bkg70+10*bkg71, 100.,
              bkg80+10*bkg81, 100., bkg90+10*bkg91, 100.,
-             bkg100+10*bkg101, 100., bkg110+10*bkg111, 100.,
+             bkg100+10*bkg101, 100.,
             )))
         #mask = masks[0] | masks[1] | masks[2]
         masks = np.array([
@@ -1373,7 +1377,6 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         #mask = mask & ~self.mask
         #func_name = traceback.extract_stack(None, 2)[-1][2]
         #assert mask.sum()>24, f'{self.name} at z={self.redshift_guess} has less than 25 valid pixels for {func_name}'
-        self.model_feii_forbidden_remove_cont_fit_init()
 
         def lnprior(pars, *args):
             (z_n, sig_n_100, sig_feii_100,
@@ -1384,7 +1387,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              fO34363, fO35007, fN25755, fHe15875, fO16300, fS26716, R_S2_nebular,
              v_nad_100, sig_nad_100, C_f_nad, tau0_nad,
              a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6,
-             a7, b7, a8, b8, a9, b9, a10, b10, a11, b11,
+             a7, b7, a8, b8, a9, b9, a10, b10,
             ) = pars
 
             lnprior = 0.
@@ -1393,8 +1396,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
 
         return masks, guess, bounds, lnprior
 
-    def model_feii_forbidden_remove_cont_fit_init(self):
-        warnings.warn('I am subtracting a spline buddy')
+    def model_feii_forbidden_get_spline_cont_fit_init(self):
         dv = 350*units.km/units.s
         AA = units.AA
         fitting_region = (
@@ -1484,7 +1486,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         #ax0.plot(
         #    wave[fitting_region], splev(wave[fitting_region], tck),
         #    color='crimson', ls='--', lw=2.0, label='$\mathrm{Smooth\,Data}$')
-        self.flux -= self.spline_model_cont
+        return
 
 
     def model_feii_forbidden_A(self, pars, *args, print_names=False, print_waves=False,
