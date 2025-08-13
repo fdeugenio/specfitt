@@ -1030,6 +1030,8 @@ class jwst_spec_models(specfitt.jwst_spec_models):
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fFe25263': (r'$F(\mathrm{[Fe\,II]\lambda 5263})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fFe25273': (r'$F(\mathrm{[Fe\,II]\lambda 5273})$', 100.,
+                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fO34363': (r'$F(\mathrm{[O\,III]\lambda 4363})$', 100.,
                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
                 'fO35007': (r'$F(\mathrm{[O\,III]\lambda 5007})$', 100.,
@@ -1119,7 +1121,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
          fO23726, R_O2_nebular, fNe33869,
          fS24069, R_S2_auroral,
          fFe24179, fFe24245, fFe24277, fFe24287, fFe24306, fFe24320, fFe24359,
-         fFe24815, fFe24890, fFe24905, fFe25044, fFe25159, fFe25263,
+         fFe24815, fFe24890, fFe24905, fFe25044, fFe25159, fFe25263, fFe25273,
          fO34363, fO35007, fN25755, fHe15875, fO16300, fS26716, R_S2_nebular,
          v_nad_100, sig_nad_100, C_f_nad, tau0_nad,
          a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6,
@@ -1136,18 +1138,18 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             self.FeII4815,                # 13
             self.FeII4890, self.FeII4905, #
             self.FeII5044, self.FeII5159, #
-            self.FeII5263,                # 18
-            self.OIII4363, self.OIII4959, self.OIII5007, # 19--21
-            self.NII5755,  self.HeI5875,  # 22--23
-            self.OI6300,   self.OI6363,   # 24--25
-            self.SII6716,  self.SII6731,  # 26--27
-            self.NaI5890,  self.NaI5896,  # 28--29
+            self.FeII5263, self.FeII5273, # 18--19
+            self.OIII4363, self.OIII4959, self.OIII5007, # 20--22
+            self.NII5755,  self.HeI5875,  # 23--24
+            self.OI6300,   self.OI6363,   # 25--26
+            self.SII6716,  self.SII6731,  # 27--28
+            self.NaI5890,  self.NaI5896,  # 29--30
             ))
 
         w_mum = (w_mum * (1.+z_n)
             * np.array(
                   (1.,)*3 
-                  + (1.,)*16 + (1.,)*3
+                  + (1.,)*17 + (1.,)*3
                   + (1.,)*2 
                   + (1.,)*4
                   + (np.exp(v_nad_100/self.c_100_kms),)*2
@@ -1166,7 +1168,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         sig_lsf_100 = self.lsf_sigma_kms(w_mum) / 1.e2 # LSF in [1e2 km/s]
         sig100 = np.array(
             (sig_n_100,)*3
-            + (sig_feii_100,)*16
+            + (sig_feii_100,)*17
             + (sig_n_100,)*3
             + (sig_feii_100,)*1
             + (sig_n_100,)*5
@@ -1195,22 +1197,23 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         f16  = gauss_int2(self.wave, mu=w_mum[16], sig=sig_mum[16], flux=fFe25044)
         f17  = gauss_int2(self.wave, mu=w_mum[17], sig=sig_mum[17], flux=fFe25159)
         f18  = gauss_int2(self.wave, mu=w_mum[18], sig=sig_mum[18], flux=fFe25263)
-        f19  = gauss_int2(self.wave, mu=w_mum[19], sig=sig_mum[19], flux=fO34363)
-        f20  = gauss_int2(self.wave, mu=w_mum[20], sig=sig_mum[20], flux=fO34959)
-        f21  = gauss_int2(self.wave, mu=w_mum[21], sig=sig_mum[21], flux=fO35007)
-        f22  = gauss_int2(self.wave, mu=w_mum[22], sig=sig_mum[22], flux=fN25755)
-        f23  = gauss_int2(self.wave, mu=w_mum[23], sig=sig_mum[23], flux=fHe15875)
-        f24  = gauss_int2(self.wave, mu=w_mum[24], sig=sig_mum[24], flux=fO16300)
-        f25  = gauss_int2(self.wave, mu=w_mum[25], sig=sig_mum[25], flux=fO16363)
-        f26  = gauss_int2(self.wave, mu=w_mum[26], sig=sig_mum[26], flux=fS26716)
-        f27  = gauss_int2(self.wave, mu=w_mum[27], sig=sig_mum[27], flux=fS26731)
+        f19  = gauss_int2(self.wave, mu=w_mum[19], sig=sig_mum[19], flux=fFe25273)
+        f20  = gauss_int2(self.wave, mu=w_mum[20], sig=sig_mum[20], flux=fO34363)
+        f21  = gauss_int2(self.wave, mu=w_mum[21], sig=sig_mum[21], flux=fO34959)
+        f22  = gauss_int2(self.wave, mu=w_mum[22], sig=sig_mum[22], flux=fO35007)
+        f23  = gauss_int2(self.wave, mu=w_mum[23], sig=sig_mum[23], flux=fN25755)
+        f24  = gauss_int2(self.wave, mu=w_mum[24], sig=sig_mum[24], flux=fHe15875)
+        f25  = gauss_int2(self.wave, mu=w_mum[25], sig=sig_mum[25], flux=fO16300)
+        f26  = gauss_int2(self.wave, mu=w_mum[26], sig=sig_mum[26], flux=fO16363)
+        f27  = gauss_int2(self.wave, mu=w_mum[27], sig=sig_mum[27], flux=fS26716)
+        f28  = gauss_int2(self.wave, mu=w_mum[28], sig=sig_mum[28], flux=fS26731)
 
-        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[28]
-        tau_nad_blue = 2. * tau0_nad * gauss_int2(
-            self.wave, mu=w_mum[28], sig=sig_mum[28], flux=tau0_norm)
         tau0_norm = np.sqrt(2.*np.pi) * sig_mum[29]
-        tau_nad_red  = 1. * tau0_nad * gauss_int2(
+        tau_nad_blue = 2. * tau0_nad * gauss_int2(
             self.wave, mu=w_mum[29], sig=sig_mum[29], flux=tau0_norm)
+        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[30]
+        tau_nad_red  = 1. * tau0_nad * gauss_int2(
+            self.wave, mu=w_mum[30], sig=sig_mum[30], flux=tau0_norm)
         absr_nad = 1. - C_f_nad + C_f_nad * np.exp(-tau_nad_blue -tau_nad_red)
 
         bk0 = a0 + (self.wave-w_mum[0])  * b0
@@ -1221,9 +1224,9 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         bk5 = a5 + (self.wave-w_mum[15]) * b5
         bk6 = a6 + (self.wave-w_mum[15]) * b6
         bk7 = a7 + (self.wave-w_mum[17]) * b7
-        bk8 = a8 + (self.wave-w_mum[23]) * b8
-        bk9 = a9 + (self.wave-w_mum[24]) * b9
-        bk10 = a10 + (self.wave-w_mum[26]) * b10
+        bk8 = a8 + (self.wave-w_mum[24]) * b8
+        bk9 = a9 + (self.wave-w_mum[25]) * b9
+        bk10 = a10 + (self.wave-w_mum[27]) * b10
 
         bk0 = np.where(self.fit_mask[0], bk0, 0)
         bk1 = np.where(self.fit_mask[1], bk1, 0)
@@ -1239,7 +1242,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
 
         if print_blobs:
             mask_nad  = (
-                self.fit_mask[8] & (np.abs(self.wave-w_mum[28])/sig_mum[28]<6)
+                self.fit_mask[8] & (np.abs(self.wave-w_mum[29])/sig_mum[29]<6)
                 )
             _ew_cont_ = (self.spline_model_cont + bk8)*absr_nad
             _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk8)
@@ -1255,7 +1258,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             f10, f11, f12, f13, f14, f15,
             f16, f14, f15, f16,
             f17, f18, f19, f20,
-            f21, f22, f23, f24, f25, f26, f27,
+            f21, f22, f23, f24, f25, f26, f27, f28,
             bk0, bk1, bk2, bk3, bk4, bk5, bk6,
             bk7, bk8*absr_nad, bk9, bk10, self.spline_model_cont*absr_nad,
             )
@@ -1270,10 +1273,10 @@ class jwst_spec_models(specfitt.jwst_spec_models):
 
         lwave = np.array((
             .3728, .3870, .4075, .4180, .43416, .48626, .5008, .5215,
-            .5800, .6350, .6725))
+            .5850, .6350, .6725))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.03, 0.02, 0.02, 0.02, 0.08, 0.05, 0.05, 0.05,
-            0.10, 0.05, 0.05)
+            0.11, 0.05, 0.05)
 
         masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
@@ -1327,7 +1330,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             0.01, 0.700, 0.01,
             0.01, 0.250, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
             0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
-            0.01, 0.01, 0.01, 0.01, 0.01,
+            0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
             0.01, 1.00,
             0.,   0.5, 0.5, 0.5,
             bkg00, bkg01, bkg10, bkg11, bkg20, bkg21,
@@ -1341,7 +1344,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              0., 0.200,
              0., 0., 0., 0., 0., 0., 0.,
              0., 0., 0., 0., 0., 0.,
-             0., 0., 0., 0., 0.,
+             0., 0., 0., 0., 0., 0.,
              0., 0.6773,
              -1., 0.01, 0.0, 0.0,
              bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
@@ -1356,7 +1359,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              5., 0.333,
              5., 5., 5., 5., 5., 5., 5.,
              5., 5., 5., 5., 5., 5.,
-             5., 5., 5., 5., 5.,
+             5., 5., 5., 5., 5., 5.,
              5., 2.372,
              1., 10., 1.0, 15.0,
              bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
@@ -1383,7 +1386,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
              fO23726, R_O2_nebular, fNe33869,
              fS24069, R_S2_auroral,
              fFe24179, fFe24245, fFe24277, fFe24287, fFe24306, fFe24320, fFe24359,
-             fFe24815, fFe24890, fFe24905, fFe25044, fFe25159, fFe25263,
+             fFe24815, fFe24890, fFe24905, fFe25044, fFe25159, fFe25263, fFe25273,
              fO34363, fO35007, fN25755, fHe15875, fO16300, fS26716, R_S2_nebular,
              v_nad_100, sig_nad_100, C_f_nad, tau0_nad,
              a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, a6, b6,
@@ -1467,7 +1470,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             4069.7, 4078., 4179., 4245., 4267.,  4277.,  4287.,  4306., 
             4359.,  4365.,  4415.,  4417.5, 4815.9, 4891.0, 4906.7,
             5044.9, 5159.5, 5160.2, 5263.9, 4960.3, 5008.2,
-            5756.2, 5877.2, 5891.5, 5897.6, 6302.0, 6365.5, 6718.2, 6732.7,
+            5756.2, 5274.8, 5877.2, 5891.5, 5897.6, 6302.0, 6365.5, 6718.2, 6732.7,
         )
         for ax in (ax0,ax1):
             for lw in line_waves:
