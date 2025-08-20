@@ -26,6 +26,7 @@ files_path = os.path.dirname(__file__)
 LRD_TABLE     = os.path.join(files_path, '00_data/redshifts.csv')
 JADES_Z_TABLE = '00_data/jades_z_table_v0.7.1.fits'
 HAILMARY_Z_TABLE = '00_data/galaxy_list.txt'
+DARKHORSE_Z_TABLE = '00_data/goods-s-darkhorse000.csv'
 
 
 
@@ -46,6 +47,8 @@ class jwst_spec:
             '00_data/01_disp/jwst_nirspec_prism_disp.fits'),
         'r1000':os.path.join(files_path,
             '00_data/01_disp/jwst_nirspec_(g140m|g235m|g395m)_disp.fits'),
+        'r2700':os.path.join(files_path,
+            '00_data/01_disp/jwst_nirspec_(g140h|g235h|g395h)_disp.fits'),
         'wfss':os.path.join(files_path,
             '00_data/01_disp/jwst_nircam_wfss_disp.fits')
     }
@@ -363,6 +366,13 @@ class jwst_spec:
         if len(match)==1 and z_tab[match]['z']>0:
             return z_tab[match]['z'][0]
         """
+
+        # Dark Horse Survey
+        z_tab = table.Table.read(
+            DARKHORSE_Z_TABLE, format='csv')
+        match = np.where(z_tab['ID']==self.name)[0]
+        if len(match)==1 and z_tab[match]['z_visinsp']>0:
+            return z_tab[match]['z_visinsp'][0]
 
         raise NotImplementedError(f"Only JADES redshifts available for now. Failed {self.name}")
         # ETC
