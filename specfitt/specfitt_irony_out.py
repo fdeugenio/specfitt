@@ -244,6 +244,26 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
             ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
 
+            ewhg_1 = (1. - absrhg_1)
+            ewhg_1 = np.nansum(ewhg_1[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewhb_1 = (1. - absrhb_1)
+            ewhb_1 = np.nansum(ewhb_1[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewha_1 = (1. - absrha_1)
+            ewha_1 = np.nansum(ewha_1[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+
+            ewhg_2 = (1. - absrhg_2)
+            ewhg_2 = np.nansum(ewhg_2[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewhb_2 = (1. - absrhb_2)
+            ewhb_2 = np.nansum(ewhb_2[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewha_2 = (1. - absrha_2)
+            ewha_2 = np.nansum(ewha_2[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+
             lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
 
             L_Ha_n = fHa * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
@@ -347,6 +367,8 @@ class jwst_spec_models(specfitt.jwst_spec_models):
 
             lnprior += log_erfc_prior(sig_n_100/sig_out_100, mean=1., scale=0.05)
 
+            lnprior += -0.5*((sig_m_100-143)/12)**2.
+
             return lnprior
 
         return masks, guess, bounds, lnprior
@@ -359,7 +381,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         """Halpha and [NII]6548,6583. Narrow and BLR."""
         if print_names:
             return {
-                'z_n_han2': (r'$z_\mathrm{n}$', 1., '[---]'),
+                'z_n': (r'$z_\mathrm{n}$', 1., '[---]'),
                 'sig_n_100': (r'$\sigma_\mathrm{n}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
                 'sig_m_100': (r'$\sigma_\mathrm{m}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
                 'A_V': (r'$A_V$', 1., r'$[\mathrm{mag}]$'),
@@ -577,6 +599,26 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
             ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
 
+            ewhg_1 = (1. - absrhg_1)
+            ewhg_1 = np.nansum(ewhg_1[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewhb_1 = (1. - absrhb_1)
+            ewhb_1 = np.nansum(ewhb_1[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewha_1 = (1. - absrha_1)
+            ewha_1 = np.nansum(ewha_1[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+
+            ewhg_2 = (1. - absrhg_2)
+            ewhg_2 = np.nansum(ewhg_2[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewhb_2 = (1. - absrhb_2)
+            ewhb_2 = np.nansum(ewhb_2[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewha_2 = (1. - absrha_2)
+            ewha_2 = np.nansum(ewha_2[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+
             fwhm_blr_100 = get_fwhm(
                 fwhm_blr_1_100, fwhm_blr_2_100, frac1b, guess=0.15)
             lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
@@ -694,6 +736,8 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             # lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
             lnprior += log_erfc_prior(sig_n_100/sig_out_100, mean=1., scale=0.05)
 
+            lnprior += -0.5*((sig_m_100-143)/12)**2.
+
             return lnprior
 
         return masks, guess, bounds, lnprior
@@ -705,7 +749,7 @@ class jwst_spec_models(specfitt.jwst_spec_models):
         """Halpha and [NII]6548,6583. Narrow and BLR."""
         if print_names:
             return {
-                'z_n_han2': (r'$z_\mathrm{n}$', 1., '[---]'),
+                'z_n': (r'$z_\mathrm{n}$', 1., '[---]'),
                 'sig_n_100': (r'$\sigma_\mathrm{n}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
                 'sig_m_100': (r'$\sigma_\mathrm{m}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
                 'A_V': (r'$A_V$', 1., r'$[\mathrm{mag}]$'),
@@ -953,6 +997,26 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
             ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
 
+            ewhg_1 = (1. - absrhg_1)
+            ewhg_1 = np.nansum(ewhg_1[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewhb_1 = (1. - absrhb_1)
+            ewhb_1 = np.nansum(ewhb_1[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+            ewha_1 = (1. - absrha_1)
+            ewha_1 = np.nansum(ewha_1[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_1 /= (1+z_n)*np.exp(v_abs_1_100/self.c_100_kms) # Rest frame
+
+            ewhg_2 = (1. - absrhg_2)
+            ewhg_2 = np.nansum(ewhg_2[mask_hg]*dwhg)*1e4        # To [AA]
+            ewhg_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewhb_2 = (1. - absrhb_2)
+            ewhb_2 = np.nansum(ewhb_2[mask_hb]*dwhb)*1e4        # To [AA]
+            ewhb_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+            ewha_2 = (1. - absrha_2)
+            ewha_2 = np.nansum(ewha_2[mask_ha]*dwha)*1e4        # To [AA]
+            ewha_2 /= (1+z_n)*np.exp(v_abs_2_100/self.c_100_kms) # Rest frame
+
             lum_fact = (4 * np.pi * cosmop.luminosity_distance(z_n)**2)
     
             L_Ha_n = fHa * 1e2 * units.Unit('1e-18 erg/(s cm2)') / _g03_(self.Halpha, Av)
@@ -1066,6 +1130,8 @@ class jwst_spec_models(specfitt.jwst_spec_models):
             # erfc prior. Difference between absorber velocities less than 100 km/s.
             # lnprior += log_erfc_prior(v_abs_1_100-v_abs_2_100, mean=1., scale=1.)
             lnprior += log_erfc_prior(sig_n_100/sig_out_100, mean=1., scale=0.05)
+
+            lnprior += -0.5*((sig_m_100-143)/12)**2.
 
             return lnprior
 
