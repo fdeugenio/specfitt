@@ -31,12 +31,19 @@ class jwst_spec_models(spectrum.jwst_spec):
     HeII1640  = .164048
     CIII1907  = .190668
     CIII1909  = .190873
+    FeII2344  = .2344
+    FeII2374  = .2374
+    FeII2382  = .2382
+    FeII2586  = .2586
+    FeII2600  = .2600
     OII3726   = .37271
     OII3729   = .3729875
     OII3727   = .37285
     NeIII3869 = .386986
     Hzeta     = .389011
     NeIII3968 = .396859
+    CaII3934  = .393477
+    CaII3968  = .396959
     Hepsilon  = .3971198      
     SII4069   = .4069750      
     SII4076   = .407750  
@@ -2731,6 +2738,7 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         ax.text(0.05, 0.95, r'$\mathrm{{BIC}}$'+f'$={self.bic:.1f}$',
             va='top', ha='left', fontsize=fontsize, transform=ax.transAxes)
         line_waves = self.model(self.pars[:, 0], print_waves=True)
+
         for lw in line_waves:
             for _ax_ in (ax, rax):
                 if _ax_: _ax_.axvline(lw, ls='--', alpha=0.5, color='k')
