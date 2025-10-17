@@ -2093,5 +2093,540 @@ class jwst_spec_models(specfitt.jwst_spec_models):
 
 
 
+    def model_feii_uv_abs(self, pars, *args, print_names=False, print_waves=False,
+        print_blobs=False, print_blob_dtypes=False):
+
+        """For fitting [Fe II] emission in LRDs."""
+        if print_names:
+            return {
+                'z_n': (r'$z_\mathrm{n}$', 1., '[---]'),
+                'sig_n_100'   : (r'$\sigma_\mathrm{n}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'v_feii_100': (r'$v_\mathrm{Fe\,II}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'sig_feii_100': (r'$\sigma_\mathrm{Fe\,II}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'fC31909': (r'$F(\mathrm{C\,III]\lambda 1909})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'R_C3'   : (r'$F(\mathrm{C\,III]\lambda 1907})$'+'\n'+r'$/F(\mathrm{C\,III]\lambda 1909})$', 1., '[---]'),
+                'fFe22344' : (r'$F(\mathrm{Fe\,II\lambda 2344})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fFe22374' : (r'$F(\mathrm{Fe\,II\lambda 2374})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fFe22382' : (r'$F(\mathrm{Fe\,II\lambda 2382})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fFe22586' : (r'$F(\mathrm{Fe\,II\lambda 2586})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fFe22600' : (r'$F(\mathrm{Fe\,II\lambda 2600})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'bk00': (r'$bk_0$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
+                'bk01': (r'$bk_1$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
+                'bk10': (r'$bk_0$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
+                'bk11': (r'$bk_1$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
+                'bk20': (r'$bk_0$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
+                'bk21': (r'$bk_1$', 1.,
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
+                 }
+        if print_blob_dtypes:
+            return {
+                'lnlike': (r'$\log\,L$', 1., '[---]', float),
+                'fC31907': (r'$F(\mathrm{C\,III]\lambda 1907})$', 100.,
+                     r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$', float),
+                'EWC3':      (r'$EW(\mathrm{C\,III]})$', 1., r'$[\AA]$', float),
+                'EWFe22344' : (r'$EW(\mathrm{Fe\,II\lambda 2344})$', 1., r'$[\AA]$', float),
+                'EWFe22374' : (r'$EW(\mathrm{Fe\,II\lambda 2374})$', 1., r'$[\AA]$', float),
+                'EWFe22382' : (r'$EW(\mathrm{Fe\,II\lambda 2382})$', 1., r'$[\AA]$', float),
+                'EWFe22586' : (r'$EW(\mathrm{Fe\,II\lambda 2586})$', 1., r'$[\AA]$', float),
+                'EWFe22600' : (r'$EW(\mathrm{Fe\,II\lambda 2600})$', 1., r'$[\AA]$', float),
+                'EWFeIIUV1'  : (r'$EW(\mathrm{Fe\,II\;UV1})$', 1., r'$[\AA]$', float),
+                'EWFeIIUV2-3': (r'$EW(\mathrm{Fe\,II\;UV2-UV3})$', 1., r'$[\AA]$', float),
+                }
+        (z_n, sig_n_100, v_feii_100, sig_feii_100,
+         fC31909, R_C3, fFe22344, fFe22374, fFe22382,
+         fFe22586, fFe22600,
+         a0, b0, a1, b1, a2, b2,
+        ) = pars
+        w_mum = np.array((
+            self.CIII1907, self.CIII1909,
+            self.FeII2344, self.FeII2374, self.FeII2382,
+            self.FeII2586, self.FeII2600,
+            ))
+
+        w_mum = (w_mum * (1.+z_n)
+            * np.array(
+                  (1.,)*2
+                  + (np.exp(v_feii_100/self.c_100_kms),)*5
+                  )
+                  #+ (np.exp(v_blr_100/self.c_100_kms),)*2
+		    )
+        if print_waves: return w_mum
+
+        sig_lsf_100 = self.lsf_sigma_kms(w_mum) / 1.e2 # LSF in [1e2 km/s]
+        sig100 = np.array(
+            (sig_n_100,)*2
+            + (sig_feii_100,)*5
+            #+ (fwhm_blr_100/self.fwhm2sig,)*2
+            )
+        sig100  = np.sqrt(sig100**2 + sig_lsf_100**2)
+        sig_mum = sig100 / constants.c.to('1e2 km/s').value * w_mum
+
+        fC31907 = fC31909 * R_C3
+ 
+        f0 = gauss_int2(self.wave, mu=w_mum[0], sig=sig_mum[0], flux=fC31907)
+        f1 = gauss_int2(self.wave, mu=w_mum[1], sig=sig_mum[1], flux=fC31909)
+        f2 = gauss_int2(self.wave, mu=w_mum[2], sig=sig_mum[2], flux=fFe22344)
+        f3 = gauss_int2(self.wave, mu=w_mum[3], sig=sig_mum[3], flux=fFe22374)
+        f4 = gauss_int2(self.wave, mu=w_mum[4], sig=sig_mum[4], flux=fFe22382)
+        f5 = gauss_int2(self.wave, mu=w_mum[5], sig=sig_mum[5], flux=fFe22586)
+        f6 = gauss_int2(self.wave, mu=w_mum[6], sig=sig_mum[6], flux=fFe22600)
+
+        bk0 = a0 + (self.wave-w_mum[0])  * b0
+        bk1 = a1 + (self.wave-w_mum[3])  * b1
+        bk2 = a2 + (self.wave-w_mum[5])  * b2
+
+        bk0 = np.where(self.fit_mask[0], bk0, 0)
+        bk1 = np.where(self.fit_mask[1], bk1, 0)
+        bk2 = np.where(self.fit_mask[2], bk2, 0)
+
+        if print_blobs:
+            mask_c3 = (
+                self.fit_mask[0] & (np.abs(self.wave-w_mum[0])/sig_mum[0]<10)
+                )
+            _ew_cont_ = (self.spline_model_cont + bk0 + f0 + f1)
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk0)
+            dw = np.gradient(self.wave[mask_c3])
+            _ew_cont_ = np.sum(_ew_cont_[mask_c3]*dw)*1e4 # To [AA]
+            EWC3 = _ew_cont_ / (1+z_n) # Rest frame
+
+            EWS = [0, 0, 0, 0, 0]
+            for i,(f,mask,bk) in enumerate(zip(
+                (f2, f3, f4, f5, f6),
+                (self.fit_mask[1],)*3 + (self.fit_mask[2],)*2,
+                (bk1,)             *3 + (bk2,)             *2)):
+
+                j = i + 2
+                mask_fe2 = (
+                    mask & (np.abs(self.wave-w_mum[j])/sig_mum[j]<10)
+                )
+                _ew_cont_ = (self.spline_model_cont + bk + f)
+                _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk)
+                dw = np.gradient(self.wave[mask_fe2])
+                _ew_cont_ = np.sum(_ew_cont_[mask_fe2]*dw)*1e4 # To [AA]
+                EWS[i] = _ew_cont_ / ((1+z_n)*np.exp((v_feii_100)/self.c_100_kms)) # Rest frame
+            mask_fe2 = (
+                self.fit_mask[1] & (
+                    (np.abs(self.wave-w_mum[2])/sig_mum[2]<10)
+                    | (np.abs(self.wave-w_mum[3])/sig_mum[3]<10)
+                    | (np.abs(self.wave-w_mum[4])/sig_mum[4]<10)
+                    )
+                )
+            _ew_cont_ = (self.spline_model_cont + bk1 + f2 + f3 + f4)
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk1)
+            dw = np.gradient(self.wave[mask_fe2])
+            _ew_cont_ = np.sum(_ew_cont_[mask_fe2]*dw)*1e4 # To [AA]
+            EWUV23 = _ew_cont_ / ((1+z_n)*np.exp((v_feii_100)/self.c_100_kms)) # Rest frame
+            mask_fe2 = (
+                self.fit_mask[2] & (
+                    (np.abs(self.wave-w_mum[5])/sig_mum[5]<10)
+                    | (np.abs(self.wave-w_mum[6])/sig_mum[6]<10)
+                    )
+                )
+            _ew_cont_ = (self.spline_model_cont + bk2 + f5 + f6)
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk2)
+            dw = np.gradient(self.wave[mask_fe2])
+            _ew_cont_ = np.sum(_ew_cont_[mask_fe2]*dw)*1e4 # To [AA]
+            EWUV1 = _ew_cont_ / ((1+z_n)*np.exp((v_feii_100)/self.c_100_kms)) # Rest frame
+
+            return (fC31907, EWC3) + tuple(EWS) + (EWUV1, EWUV23)
+        return (
+            f0, f1, f2, f3, f4, f5, f6,
+            bk0, bk1, bk2, self.spline_model_cont
+            )
+
+    def model_feii_uv_abs_fit_init(self):
+        """CIII] and UV continuum"""
+
+        self.model_feii_uv_abs_get_spline_cont_fit_init()
+
+        backup_flux = np.copy(self.flux)
+        self.flux -= self.spline_model_cont
+
+        lwave = np.array((
+            .1908, .2374, .2590,
+            ))
+        pivot_waves = lwave * (1+self.redshift_guess)
+        windw_sizes = (0.10,)*3
+
+        masks = [
+            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
+            np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2],
+        ]
+
+        bkg00 = np.nanmedian(self.flux[masks[0]])
+        bkg10 = np.nanmedian(self.flux[masks[1]])
+        bkg20 = np.nanmedian(self.flux[masks[2]])
+        bkg01 = np.nanstd(self.flux[masks[0]])
+        bkg11 = np.nanstd(self.flux[masks[1]])
+        bkg21 = np.nanstd(self.flux[masks[2]])
+
+        self.flux = backup_flux
+
+        guess = np.array((
+            self.redshift_guess, 0.5, 0., 0.5,
+            0.01, 1.,
+            -0.01, -0.01, -0.01, -0.01, -0.01,
+            bkg00, bkg01, bkg10, bkg11, bkg20, bkg21,
+            ))
+        bounds = np.array((
+            (self.redshift_guess-self.dz, 0., -15., 0.,
+             0., 0.0,
+             -10., -10., -10., -10., -10.,
+             bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
+             bkg20-10*bkg21, -100.,
+             ),
+            (self.redshift_guess+self.dz, 5., 15., 10.,
+             5., 1.68,
+             0., 0., 0., 0., 0.,
+             bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
+             bkg20+10*bkg21, 100.,
+            )))
+        #mask = masks[0] | masks[1] | masks[2]
+        masks = np.array([
+            ~self.mask & mask & np.isfinite(self.flux*self.errs) & (self.errs>0)
+            for mask in masks])
+        #central_wave = 0.6600*(1+self.redshift_guess)
+        #mask = np.abs(self.wave - central_wave)<0.10 # [um]
+        #central_pix  = np.argmin(np.abs(self.wave - central_wave))
+        #mask[central_pix-15:central_pix+15+1] = True
+        #mask = mask & ~self.mask
+        #func_name = traceback.extract_stack(None, 2)[-1][2]
+        #assert mask.sum()>24, f'{self.name} at z={self.redshift_guess} has less than 25 valid pixels for {func_name}'
+
+        def lnprior(pars, *args):
+            (z_n, sig_n_100, v_feii_100, sig_feii_100,
+             fC31909, R_C3, fFe22344, fFe22374, fFe22382,
+             fFe22586, fFe22600,
+             a0, b0, a1, b1, a2, b2,
+            ) = pars
+
+            lnprior = 0.
+
+            lnprior += -0.5*((z_n - 6.68481)/0.0001)**2
+            lnprior += -0.5*((sig_n_100 - 150.)/50.)**2
+
+            #lnprior += log_erfc_prior(sig_n_100/sig_out_100, mean=1., scale=0.05)
+
+            return lnprior
+
+        return masks, guess, bounds, lnprior
+
+    def model_feii_uv_abs_get_spline_cont_fit_init(self):
+        dv = 10000*units.km/units.s
+        AA = units.AA
+        fitting_region = (
+            (self.errs>0) & np.isfinite(self.errs*self.flux)
+            & mask_line(self.wave, 1907.0*AA, 1*dv, self.redshift_guess)
+            & mask_line(self.wave, 1959.0*AA, 1.8*dv, self.redshift_guess)
+            & mask_line(self.wave, 2344.0*AA, 1*dv, self.redshift_guess)
+            & mask_line(self.wave, 2374.0*AA, 1*dv, self.redshift_guess)
+            & mask_line(self.wave, 2382.0*AA, 2*dv, self.redshift_guess)
+            & mask_line(self.wave, 2586.0*AA, 1*dv, self.redshift_guess)
+            & mask_line(self.wave, 2600.0*AA, 1*dv, self.redshift_guess)
+            )
+        tckKnown = splrep(# s controls smoothness (higher = smoother)
+            self.wave[fitting_region], self.flux[fitting_region], s=0.5)
+        self.spline_model_cont = splev(
+            self.wave[fitting_region], tckKnown)
+        self.spline_model_cont = np.interp(
+            self.wave, 
+            self.wave[fitting_region], self.spline_model_cont)
+        # (0) Spline
+        #tck = splrep(wave[fitting_region], flux[fitting_region], s=0.25)
+        #cubesview_utils.plot_badpixels_regions(
+        #    self.wave, axes=ax0, facecolor='silver', edgecolor='none',
+        #    mask=fitting_region, alpha=0.3)
+        plotting_region = (
+            (self.wave>=self.wave[fitting_region][0])
+            & (self.wave<=self.wave[fitting_region][-1])
+            )
+        fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True, figsize=(16, 10))
+        ax0.step(
+            self.wave[plotting_region], self.flux[plotting_region],
+            label='$\mathrm{Data}$', where='mid', color='k', ls='-')
+        ax0.step(
+            self.wave[plotting_region], self.spline_model_cont[plotting_region],
+            color='crimson', ls='-', label='$\mathrm{Model}$', where='mid')
+        ax0.semilogy()
+        ax1.step(
+            self.wave[plotting_region],
+            self.flux[plotting_region]-self.spline_model_cont[plotting_region],
+            label='$\mathrm{Data}$', where='mid', color='k', ls='-')
+        line_waves = (
+            1907.0, 1909.0, 2344.0, 2374.0, 2382.0, 2586.0, 2600.0
+        )
+        ax0.step(self.wave, fitting_region, 'm-')
+        for ax in (ax0,ax1):
+            for lw in line_waves:
+                lw = lw*(1+self.redshift_guess)/1.e4
+                ax.axvline(lw, color='grey', ls='--', alpha=0.5)
+        std = np.nanpercentile(
+            self.flux[plotting_region]-self.spline_model_cont[plotting_region],
+            (16, 84))
+        std = 3*(std[1]-std[0])/2.
+        ax1.set_ylim(-std, std)
+        ax1.axhline(0., ls='--', color='grey', alpha=0.5)
+        plt.subplots_adjust(hspace=0.0)
+        plt.savefig(f'{self.name}_test_cont.pdf', bbox_inches='tight',
+            pad_inches=0.01)
+        plt.close(fig)
+        #ax0.plot(
+        #    wave[fitting_region], splev(wave[fitting_region], tck),
+        #    color='crimson', ls='--', lw=2.0, label='$\mathrm{Smooth\,Data}$')
+        return
+
+
+    def model_caii(self, pars, *args, print_names=False, print_waves=False,
+        print_blobs=False, print_blob_dtypes=False):
+
+        """For fitting [Fe II] emission in LRDs."""
+        if print_names:
+            return {
+                'sig_n_100': (r'$\sigma_\mathrm{n}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'fHepsilon': (r'$F_\mathrm{n}(\mathrm{H\epsilon})$', 100.,
+                              r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'fHe15875': (r'$F(\mathrm{He\,I\lambda 5875})$', 100.,
+                             r'$[10^{-18} \, \mathrm{erg\,s^{-1}\,cm^{-2}}]$'),
+                'v_nad_100': (r'$v_\mathrm{Na\,I}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'sig_nad_100': (r'$\sigma_\mathrm{Na\,I}$', 100., r'$[\mathrm{km\,s^{-1}}]$'),
+                'C_f_nad': (r'$C_{f}$', 1., '[---]'),
+                'tau0_nad': (r'$\tau_\mathrm{Na\,I}$', 1., '[---]'),
+                'tau0_cak': (r'$\tau_\mathrm{Ca\,II}$', 1., '[---]'),
+                'bk00': (r'$bk_0$', 1., 
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
+                'bk01': (r'$bk_1$', 1., 
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
+                'bk10': (r'$bk_0$', 1., 
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-1}}]$'),
+                'bk11': (r'$bk_1$', 1., 
+                       r'$[10^{-20} \, \mathrm{erg\,s^{-1}\,cm^{-2}\,\\mu m^{-2}}]$'),
+                 }
+        if print_blob_dtypes:
+            return {
+                'lnlike': (r'$\log\,L$', 1., '[---]', float),
+                'EW_CaIIK':      (r'$EW(\mathrm{Ca\,II\,K})$', 1., r'$[\AA]$', float),
+                'EW_NaI':      (r'$EW(\mathrm{Na\,I})$', 1., r'$[\AA]$', float),
+                }
+        (sig_n_100, fHepsilon, fHe15875,
+         v_nad_100, sig_nad_100, C_f_nad, tau0_nad, tau0_cak,
+         a0, b0, a1, b1,
+        ) = pars
+        w_mum = np.array((
+            self.Hepsilon,  # 23--24
+            self.CaII3934, self.CaII3968,  # 29--30
+            self.HeI5875,  # 23--24
+            self.NaI5890,  self.NaI5896,  # 29--30
+            ))
+
+        z_n = 6.6848
+        w_mum = (w_mum * (1.+z_n)
+            * np.array(
+                  (1.,)*1 
+                  + (np.exp(v_nad_100/self.c_100_kms),)*2
+                  + (1.,)
+                  + (np.exp(v_nad_100/self.c_100_kms),)*2
+                  )
+                  #+ (np.exp(v_blr_100/self.c_100_kms),)*2
+		    )
+        if print_waves: return w_mum
+
+        sig_lsf_100 = self.lsf_sigma_kms(w_mum) / 1.e2 # LSF in [1e2 km/s]
+        sig100 = np.array(
+            (sig_nad_100,)
+            + (sig_nad_100,)*2
+            + (sig_nad_100,)
+            + (sig_nad_100,)*2
+            #+ (fwhm_blr_100/self.fwhm2sig,)*2
+            )
+        sig100  = np.sqrt(sig100**2 + sig_lsf_100**2)
+        sig_mum = sig100 / constants.c.to('1e2 km/s').value * w_mum
+
+        f0   = gauss_int2(self.wave, mu=w_mum[0], sig=sig_mum[0], flux=fHepsilon)
+        f1   = gauss_int2(self.wave, mu=w_mum[3], sig=sig_mum[3], flux=fHe15875)
+
+        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[1]
+        tau_cak = tau0_cak * gauss_int2(
+            self.wave, mu=w_mum[1], sig=sig_mum[1], flux=tau0_norm)
+        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[2]
+        tau_cah = 0.5 * tau0_nad * gauss_int2(
+            self.wave, mu=w_mum[2], sig=sig_mum[2], flux=tau0_norm)
+        absr_ca = 1. - C_f_nad + C_f_nad * np.exp(-tau_cak -tau_cah)
+
+        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[4]
+        tau_nad_blue = 2. * tau0_nad * gauss_int2(
+            self.wave, mu=w_mum[4], sig=sig_mum[4], flux=tau0_norm)
+        tau0_norm = np.sqrt(2.*np.pi) * sig_mum[5]
+        tau_nad_red  = 1. * tau0_nad * gauss_int2(
+            self.wave, mu=w_mum[5], sig=sig_mum[5], flux=tau0_norm)
+        absr_nad = 1. - C_f_nad + C_f_nad * np.exp(-tau_nad_blue -tau_nad_red)
+
+        bk0 = a0 + (self.wave-w_mum[0])  * b0
+        bk1 = a1 + (self.wave-w_mum[3])  * b1
+
+        bk0 = np.where(self.fit_mask[0], bk0, 0)
+        bk1 = np.where(self.fit_mask[1], bk1, 0)
+
+        if print_blobs:
+            mask_ca = (
+                self.fit_mask[0] & (np.abs(self.wave-w_mum[1])/sig_mum[1]<6)
+                )
+            _ew_cont_ = (self.spline_model_cont + bk0)*absr_ca
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk0)
+            dw = np.gradient(self.wave[mask_ca])
+            _ew_cont_ = np.sum(_ew_cont_[mask_ca]*dw)*1e4 # To [AA]
+            ew_cak = _ew_cont_ / ((1+z_n)*np.exp((v_nad_100)/self.c_100_kms)) # Rest frame
+            mask_nad  = (
+                self.fit_mask[1] & (np.abs(self.wave-w_mum[4])/sig_mum[4]<6)
+                )
+            _ew_cont_ = (self.spline_model_cont + bk1)*absr_nad
+            _ew_cont_ = 1. - _ew_cont_/(self.spline_model_cont + bk1)
+            dw = np.gradient(self.wave[mask_nad])
+            _ew_cont_ = np.sum(_ew_cont_[mask_nad]*dw)*1e4 # To [AA]
+            ew_nad = _ew_cont_ / ((1+z_n)*np.exp((v_nad_100)/self.c_100_kms)) # Rest frame
+            return (ew_cak, ew_nad,)
+        return (
+            f0, f1, bk0*absr_ca, bk1*absr_nad, self.spline_model_cont*absr_ca*absr_nad
+            )
+
+    def model_caii_fit_init(self):
+        """Halpha and [NII]6548,6583. Narrow and BLR."""
+
+        self.model_caii_get_spline_cont_fit_init()
+
+        backup_flux = np.copy(self.flux)
+        self.flux -= self.spline_model_cont
+
+        lwave = np.array((
+            .3950, .5850))
+        pivot_waves = lwave * (1+self.redshift_guess)
+        windw_sizes = (0.12, 0.12)
+
+        masks = [
+            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
+            np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
+        ]
+
+        bkg00 = np.nanmedian(self.flux[masks[0]])
+        bkg10 = np.nanmedian(self.flux[masks[1]])
+        bkg01 = np.nanstd(self.flux[masks[0]])
+        bkg11 = np.nanstd(self.flux[masks[1]])
+
+        self.flux = backup_flux
+
+        guess = np.array((
+            0.5, 0.01, 0.01,
+            0.,   0.5, 0.5, 0.5, 0.5,
+            bkg00, bkg01, bkg10, bkg11,
+            ))
+        bounds = np.array((
+            (0.01, 0., 0.,
+             -1., 0.01, 0.0, 0.0, 0.0,
+             bkg00-10*bkg01, -100., bkg10-10*bkg11, -100.,
+             ),
+            (0.9, 1., 1.,
+             1., 10., 1.0, 15.0, 15.0,
+             bkg00+10*bkg01, 100., bkg10+10*bkg11, 100.,
+            )))
+        #mask = masks[0] | masks[1] | masks[2]
+        masks = np.array([
+            ~self.mask & mask & np.isfinite(self.flux*self.errs) & (self.errs>0)
+            for mask in masks])
+        #central_wave = 0.6600*(1+self.redshift_guess)
+        #mask = np.abs(self.wave - central_wave)<0.10 # [um]
+        #central_pix  = np.argmin(np.abs(self.wave - central_wave))
+        #mask[central_pix-15:central_pix+15+1] = True
+        #mask = mask & ~self.mask
+        #func_name = traceback.extract_stack(None, 2)[-1][2]
+        #assert mask.sum()>24, f'{self.name} at z={self.redshift_guess} has less than 25 valid pixels for {func_name}'
+
+        def lnprior(pars, *args):
+            (sig_n_100, fHepsilon, fHe15875,
+             v_nad_100, sig_nad_100, C_f_nad, tau0_nad, tau0_cak,
+             a0, b0, a1, b1,
+            ) = pars
+
+            lnprior = 0.
+
+            #lnprior += log_erfc_prior(sig_n_100/sig_out_100, mean=1., scale=0.05)
+
+            return lnprior
+
+        return masks, guess, bounds, lnprior
+
+    def model_caii_get_spline_cont_fit_init(self):
+        dv = 350*units.km/units.s
+        AA = units.AA
+        fitting_region = (
+            (self.errs>0) & np.isfinite(self.errs*self.flux)
+            & mask_line(self.wave, 3951.0*AA, 8.3*dv, self.redshift_guess)
+            & mask_line(self.wave, 5877.2*AA, 8.3*dv, self.redshift_guess)
+            & (self.wave>2.7) & (self.wave<5.3)
+            )
+        tckKnown = splrep(# s controls smoothness (higher = smoother)
+            self.wave[fitting_region], self.flux[fitting_region], s=5)
+        self.spline_model_cont = splev(
+            self.wave[fitting_region], tckKnown)
+        self.spline_model_cont = np.interp(
+            self.wave, 
+            self.wave[fitting_region], self.spline_model_cont)
+        # (0) Spline
+        #tck = splrep(wave[fitting_region], flux[fitting_region], s=0.25)
+        #cubesview_utils.plot_badpixels_regions(
+        #    self.wave, axes=ax0, facecolor='silver', edgecolor='none',
+        #    mask=fitting_region, alpha=0.3)
+        plotting_region = (
+            (self.wave>=self.wave[fitting_region][0])
+            & (self.wave<=self.wave[fitting_region][-1])
+            )
+        fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True, figsize=(16, 10))
+        ax0.step(
+            self.wave[plotting_region], self.flux[plotting_region],
+            label='$\mathrm{Data}$', where='mid', color='k', ls='-')
+        ax0.step(
+            self.wave[plotting_region], self.spline_model_cont[plotting_region],
+            color='crimson', ls='-', label='$\mathrm{Model}$', where='mid')
+        ax0.semilogy()
+        ax1.step(
+            self.wave[plotting_region],
+            self.flux[plotting_region]-self.spline_model_cont[plotting_region],
+            label='$\mathrm{Data}$', where='mid', color='k', ls='-')
+        line_waves = (
+            3727.1, 3729.9, 3869.9,
+            4069.7, 4078., 4179.,
+            5756.2, 5274.8, 5877.2, 5891.5, 5897.6,
+        )
+        for ax in (ax0,ax1):
+            for lw in line_waves:
+                lw = lw*(1+self.redshift_guess)/1.e4
+                ax.axvline(lw, color='grey', ls='--', alpha=0.5)
+        std = np.nanpercentile(
+            self.flux[plotting_region]-self.spline_model_cont[plotting_region],
+            (16, 84))
+        std = 3*(std[1]-std[0])/2.
+        ax1.set_ylim(-std, std)
+        ax1.axhline(0., ls='--', color='grey', alpha=0.5)
+        plt.subplots_adjust(hspace=0.0)
+        plt.savefig(f'{self.name}_test_cont.pdf', bbox_inches='tight',
+            pad_inches=0.01)
+        plt.close(fig)
+        #ax0.plot(
+        #    wave[fitting_region], splev(wave[fitting_region], tck),
+        #    color='crimson', ls='--', lw=2.0, label='$\mathrm{Smooth\,Data}$')
+        return
+
+
 class jwst_spec_fitter(jwst_spec_models, specfitt.jwst_spec_fitter):
     pass
+
