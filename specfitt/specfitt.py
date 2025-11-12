@@ -2602,7 +2602,7 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         extra_samples = extra_samples[:, burnin:, :].T.reshape(-1, self.n_blobs)
         self.extended_samples = np.column_stack([
             self.samples, extra_samples])
-        lnlike = self.get_blobs()["lnlike"][burnin:, ].flatten()
+        lnlike = self.get_blobs()["lnlike"][burnin:, ].T.flatten()
         self.lnlike = np.nanmax(lnlike)
         self.bic    = self.n_pars * np.log(self.n_data) - 2. * self.lnlike
         
