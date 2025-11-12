@@ -852,10 +852,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4935, .6565))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.15, 0.25)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -1032,10 +1032,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4935, .6565))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.15, 0.25)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -1168,8 +1168,8 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.6565,))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.125,)
-        masks = (
-            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],)
+        masks = [
+            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg01 = np.nanstd(self.flux[masks[0]])
@@ -1286,8 +1286,8 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.6565,))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.125,)
-        masks = (
-            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],)
+        masks = [
+            np.abs(self.wave-pivot_waves[0])<windw_sizes[0],]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg01 = np.nanstd(self.flux[masks[0]])
@@ -1493,10 +1493,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4935, .6565))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.15, 0.25)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -1735,10 +1735,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4935, .6565))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.15, 0.25)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -2007,10 +2007,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4935, .6565))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.15, 0.25)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -2218,10 +2218,10 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.3798, .4250, .4935))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.09, 0.25, 0.15)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
-            np.abs(self.wave-pivot_waves[2])<windw_sizes[2])
+            np.abs(self.wave-pivot_waves[2])<windw_sizes[2]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -2387,11 +2387,11 @@ class jwst_spec_models(spectrum.jwst_spec):
         lwave = np.array((.42649, .444, .5008, .5215))
         pivot_waves = lwave * (1+self.redshift_guess)
         windw_sizes = (0.05, 0.05, 0.05, 0.05)
-        masks = (
+        masks = [
             np.abs(self.wave-pivot_waves[0])<windw_sizes[0],
             np.abs(self.wave-pivot_waves[1])<windw_sizes[1],
             np.abs(self.wave-pivot_waves[2])<windw_sizes[2],
-            np.abs(self.wave-pivot_waves[3])<windw_sizes[3])
+            np.abs(self.wave-pivot_waves[3])<windw_sizes[3]]
 
         bkg00 = np.nanmedian(self.flux[masks[0]])
         bkg10 = np.nanmedian(self.flux[masks[1]])
@@ -2564,6 +2564,12 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         plt.savefig(lsq_output_file, bbox_inches='tight', pad_inches=0.01)
         plt.close(fig)
 
+        if sigma_clip:=kwargs.get('sigma_clip', 0)>0:
+            self.clip_mask = np.abs(
+                (self.flux - np.sum(model_lsq, axis=0))/self.errs)<=sigma_clip
+            self.fit_mask = np.array([
+                m & self.clip_mask for m in self.fit_mask])
+
         pos = np.array([
             np.random.normal(self.pars_lsq, self.generous_factor*self.errs_lsq)
             for _ in range(nwalkers)])
@@ -2586,9 +2592,14 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
         self.run_mcmc(pos, nsteps, progress=True)
         burnin = int(nsteps*burnin)
         self.samples = self.chain[:, burnin:, :].reshape((-1, len(self.guess)))
+        """ Ordering bug
         extra_samples = np.array([
              self.get_blobs()[blob][burnin:, :].flatten()
              for blob in list(zip(*self.blobs_dtype))[0]]).T
+        """
+        extra_samples = np.array([
+             self.get_blobs()[blob] for blob in list(zip(*self.blobs_dtype))[0]])
+        extra_samples = extra_samples[:, burnin:, :].T.reshape(-1, self.n_blobs)
         self.extended_samples = np.column_stack([
             self.samples, extra_samples])
         lnlike = self.get_blobs()["lnlike"][burnin:, ].flatten()
@@ -2631,6 +2642,10 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
 
         fit_init = getattr(self, f'{self.model.__name__}_fit_init')
         fit_mask, _, bounds, lnprior = fit_init()
+        fit_mask = (
+            [m & self.clip_mask for m in fit_mask]
+            if hasattr(self, 'clip_mask') else fit_mask)
+
         return (fit_mask, self.model, lnprior, bounds)
 
 
@@ -2737,7 +2752,14 @@ class jwst_spec_fitter(jwst_spec_models, emcee.EnsembleSampler):
             fontsize=fontsize)
         ax.text(0.05, 0.95, r'$\mathrm{{BIC}}$'+f'$={self.bic:.1f}$',
             va='top', ha='left', fontsize=fontsize, transform=ax.transAxes)
+
         line_waves = self.model(self.pars[:, 0], print_waves=True)
+        #try:
+        #    line_waves = self.model(self.pars[:, 0], print_waves=True)
+        #    print('Succeeded with 1')
+        #except Exception as e:
+        #    line_waves = self.model(self, self.pars[:, 0], print_waves=True)
+        #    print('Succeeded with 2')
 
         for lw in line_waves:
             for _ax_ in (ax, rax):
