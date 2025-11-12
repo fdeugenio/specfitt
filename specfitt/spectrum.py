@@ -46,6 +46,8 @@ class jwst_spec:
             '00_data/01_disp/jwst_nirspec_prism_disp.fits'),
         'r1000':os.path.join(files_path,
             '00_data/01_disp/jwst_nirspec_(g140m|g235m|g395m)_disp.fits'),
+        'r2700':os.path.join(files_path,
+            '00_data/01_disp/jwst_nirspec_(g140h|g235h|g395h)_disp.fits'),
         'wfss':os.path.join(files_path,
             '00_data/01_disp/jwst_nircam_wfss_disp.fits')
     }
