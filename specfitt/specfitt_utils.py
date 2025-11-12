@@ -70,6 +70,16 @@ def mask_line(wave, wave_c, delta, z, avoid=True):
     else:
         return np.abs(wave - wave_c)>delta
 
+def get_sigma_l(w, f, cont, mask):
+     line = (f-cont)[mask] 
+     wave = w[mask]
+     dw = np.gradient(wave)
+     p = np.nansum(line*dw)
+     w0 = np.nansum(wave*line*dw)/p
+     sig_l = np.nansum((wave-w0)**2 * line * dw)/p
+     return np.sqrt(sig_l)
+
+
 
 
 @functools.cache
